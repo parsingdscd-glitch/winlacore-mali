@@ -10,12 +10,16 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: 'false' # Évite le blocage si winlacore-mali ou un autre sous-module est cassé
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle' # Accélère les builds suivants
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -24,4 +28,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: winlator-mali-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
